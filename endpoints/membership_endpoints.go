@@ -17,6 +17,7 @@ func NewMembershipEndpointFactory() *MembershipEndpointFactory {
 	return &MembershipEndpointFactory{}
 }
 
+var errMemSys = &server.ErrorSystem{"x-boat-membership"}
 
 func (fac *MembershipEndpointFactory) MakeCreateMembershipEndpoint(services *server.Services) server.HttpEndpoint {
 
@@ -24,17 +25,14 @@ func (fac *MembershipEndpointFactory) MakeCreateMembershipEndpoint(services *ser
 		membership := &domain.Membership{}
 		err := utils.ParseJSON(r, membership)
 		if err != nil {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No membership body", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(110, err.Error())
+			return errMemSys.BadRequest(1, "No membership body")
+		}
+		if membership.Id == "" {
+			membership.Id = utils.GenerateId()
 		}
 		err = services.Memberships.CreateMembership(membership)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Membership already exists",  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(2,"Membership already exists",  err.Error())
 		}
 		return server.Created(membership)
 	}
@@ -45,27 +43,18 @@ func (fac *MembershipEndpointFactory) MakeUpdateMembershipEndpoint(id string, se
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errMemSys.InternalServerError(3,"No id")
 		}
 		fmt.Println("MakeUpdateMembershipEndpoint id = ", id)
 		membership := &domain.Membership{}
 		err := utils.ParseJSON(r, membership)
 		if err != nil {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Membership", err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(110, err.Error())
+			return errMemSys.BadRequest(4, "No Membership", err.Error())
 		}
 		membership.Id = id
 		err = services.Memberships.UpdateMembership(id, membership)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found Membership with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(5, "Could Not found Membership with id = " + id,  err.Error())
 		}
 		return server.OK(membership)
 	}
@@ -76,18 +65,12 @@ func (fac *MembershipEndpointFactory) MakeGetMembershipByIdEndpoint(id string, s
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errMemSys.BadRequest(6,"No id")
 		}
 		fmt.Println("MakeGetMembershipByIdEndpoint id = ", id)
 		d, err := services.Memberships.GetMembershipById(id)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found Membership with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(7, "Could Not found Membership with id = " + id,  err.Error())
 		}
 		return server.OK(d)
 	}
@@ -99,17 +82,11 @@ func (fac * MembershipEndpointFactory) MakeGetUserMembershipsEndpoint(email stri
 		vars := mux.Vars(r)
 		email, ok := vars[email]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errMemSys.BadRequest(8,"No Id")
 		}
 		d, err := services.Memberships.GetUserMemberships(email)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found Membershipd with email = " + email,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(9, "Could Not found Membershipd with email = " + email,  err.Error())
 		}
 		return server.OK(d)
 	}
@@ -121,18 +98,12 @@ func (fac * MembershipEndpointFactory) MakeGetClubMembersEndpoint(clubId string,
 		vars := mux.Vars(r)
 		clubId, ok := vars[clubId]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errMemSys.BadRequest(10,"No id")
 		}
 		fmt.Println("MakeGetClubMembersEndpoint id = ", clubId)
 		d, err := services.Memberships.GetClubMembers(clubId)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found Membershipd with clubId = " + clubId,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(11, "Could Not found Membershipd with clubId = " + clubId,  err.Error())
 		}
 		return server.OK(d)
 	}
@@ -143,28 +114,13 @@ func (fac * MembershipEndpointFactory) MakeDeleteMembershipEndpoint(id string, s
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errMemSys.BadRequest(12,"No Id")
 		}
 		fmt.Println("MakeDeleteMembershipEndpoint id = ", id)
 
-
-		_, err := services.Memberships.GetMembershipById(id)
+		err := services.Memberships.DeleteMembership(id)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found membership with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
-		}
-
-		err = services.Memberships.DeleteMembership(id)
-		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found deleted membership with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errMemSys.InternalServerError(12, "Could Not found deleted membership with id = " + id,  err.Error())
 		}
 
 		return server.OK("ok")

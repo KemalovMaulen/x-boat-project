@@ -15,20 +15,7 @@ type Error struct {
 
 type ErrorSystem struct {
 	System string `json:"system,omitempty"`
-	Series int    `json:"series,omitempty"`
 }
-
-type (
-	DarError interface {
-		Headers() map[string]string
-
-		Error() string
-
-		Response() interface{}
-
-		StatusCode() int
-	}
-)
 
 func (e Error) Response() interface{} {
 	return e
@@ -41,10 +28,9 @@ func (e Error) Error() string {
 	return fmt.Sprintf("status: %d; code: %s; message: %s; developerMessage: %s", e.Status, e.Code, e.Message, e.DeveloperMessage)
 }
 
-func NewErrorSystem(system string, series int) *ErrorSystem {
+func NewErrorSystem(system string) *ErrorSystem {
 	return &ErrorSystem{
 		System: system,
-		Series: series,
 	}
 }
 
@@ -58,7 +44,7 @@ func (err *ErrorSystem) NewError(status, code int, messages ...string) *Error {
 		message = messages[0]
 	}
 
-	c := strconv.Itoa(status)+ "." + strconv.Itoa(code)
+	c := err.System + "."  + strconv.Itoa(code)
 
 	return &Error{
 		Status:           status,
@@ -68,19 +54,31 @@ func (err *ErrorSystem) NewError(status, code int, messages ...string) *Error {
 	}
 }
 
-func (errSys *ErrorSystem) BadRequest(code int, messages ...string) *Error {
-	return errSys.NewError(http.StatusBadRequest, code, messages...)
+func (errSys *ErrorSystem) BadRequest(code int, messages ...string) *Response {
+	resp := &Response{}
+	resp.Status = http.StatusBadRequest
+	resp.Data = errSys.NewError(resp.Status, code, messages...)
+	return resp
 }
 
-func (errSys *ErrorSystem) InternalServerError(code int, messages ...string) *Error {
-	return errSys.NewError(http.StatusInternalServerError, code, messages...)
+func (errSys *ErrorSystem) InternalServerError(code int, messages ...string) *Response {
+	resp := &Response{}
+	resp.Status = http.StatusInternalServerError
+	resp.Data = errSys.NewError(resp.Status, code, messages...)
+	return resp
 }
 
-func (errSys *ErrorSystem) NotFound(code int, messages ...string) *Error {
-	return errSys.NewError(http.StatusNotFound, code, messages...)
+func (errSys *ErrorSystem) NotFound(code int, messages ...string) *Response {
+	resp := &Response{}
+	resp.Status = http.StatusNotFound
+	resp.Data = errSys.NewError(resp.Status, code, messages...)
+	return resp
 }
 
-func (errSys *ErrorSystem) Forbidden(code int, messages ...string) *Error {
-	return errSys.NewError(http.StatusForbidden, code, messages...)
+func (errSys *ErrorSystem) Forbidden(code int, messages ...string) *Response {
+	resp := &Response{}
+	resp.Status = http.StatusForbidden
+	resp.Data = errSys.NewError(resp.Status, code, messages...)
+	return resp
 }
 

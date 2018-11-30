@@ -195,6 +195,44 @@ func run(c *cli.Context) error {
 				membershipFac.MakeDeleteMembershipEndpoint("id", services))),
 	).Methods("DELETE")
 
+	// Profile Endpoints
+	profileFac := endpoints.NewProfileEndpointFactory()
+
+	r.HandleFunc("/profile",
+		server.Json(
+			server.Logging(log,
+				profileFac.MakeCreateProfileEndpoint( services))),
+	).Methods("POST")
+
+	r.HandleFunc("/profile",
+		server.Json(
+			server.Logging(log,
+				profileFac.MakeUpdateProfileEndpoint( services))),
+	).Methods("PUT")
+
+	r.HandleFunc("/profile",
+		server.Json(
+			server.Logging(log,
+				profileFac.MakeGetProfileEndpoint  ("email", services))),
+	).Methods("GET")
+
+	r.HandleFunc("/profile",
+		server.Json(
+			server.Logging(log,
+				profileFac.MakeDeleteProfileEndpoint("email", services))),
+	).Methods("DELETE")
+
+
+	// Subscription Endpoints
+	//subscriptionFac := endpoints.NewSubscriptionEndpointFactory()
+
+
+
+
+
+	// Timerecord Endpoints
+	//timerecordFac := endpoints.NewTimerecordsEndpointFactory()
+
 
 	r.NotFoundHandler = http.HandlerFunc( server.Json( server.Logging( log, clubsFac.NotFoundEndpoint())))
 	return http.ListenAndServe(":"+port, r)
@@ -203,12 +241,14 @@ func run(c *cli.Context) error {
 func initializeServices() *server.Services {
 	clubs := services.NewClubService(repositories.NewClubRepository())
 	memberships := services.NewMembershipService(repositories.NewMembershipRepository())
-	//profiles := services.NewProfileService(repositories.NewProfileRepository())
-	//timerecords := services.NewTimerecordsService(repositories.NewTimerecordsRepository())
-	//subscriptions := services.NewSubscriptionService(repositories.NewSubscriptionRepository())
-	return &server.Services{clubs,
-	memberships,
-	// profiles,
-	//timerecords, subscriptions
+	profiles := services.NewProfileService(repositories.NewProfileRepository())
+	timerecords := services.NewTimerecordsService(repositories.NewTimerecordsRepository())
+	subscriptions := services.NewSubscriptionService(repositories.NewSubscriptionRepository())
+	return &server.Services {
+		Clubs: clubs,
+		Memberships: memberships,
+		Profiles: profiles,
+		Subscriptions: subscriptions,
+		Timerecords: timerecords,
 	}
 }

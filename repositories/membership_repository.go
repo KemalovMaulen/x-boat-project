@@ -6,8 +6,8 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/api/iterator"
-	//"cloud.google.com/go/firestore"
-	//"encoding/json"
+	"cloud.google.com/go/firestore"
+	"github.com/salambayev/x-boat-project/utils"
 )
 
 type MembershipRepository interface {
@@ -48,24 +48,19 @@ func (mr *membershipRepository) CreateMembership(membership *domain.Membership) 
 
 func (mr membershipRepository) UpdateMembership(id string, membership *domain.Membership) error {
 
-	//var fireMap map[string]interface{}
-	//tempByte, err := json.Marshal(membership)
-	//if err != nil {
-	//	return err
-	//}
-	//err = json.Unmarshal(tempByte, &fireMap)
-	//if err != nil {
-	//	return err
-	//}
-	//_, err = db.MembershipCollection.Doc(id).Set(context.Background(), fireMap, firestore.MergeAll)
+	fireMap, err := utils.GetMap(membership)
+	if err != nil {
+		return err
+	}
+	_, err = db.MembershipCollection.Doc(id).Set(context.Background(), fireMap, firestore.MergeAll)
 
-	_, err := db.MembershipCollection.Doc(id).Set(context.Background(), membership)
+	//_, err := db.MembershipCollection.Doc(id).Set(context.Background(), membership)
 	return err
 }
 
 func (mr *membershipRepository) GetUserMemberships(email string) ([]*domain.Membership, error) {
 	result := []*domain.Membership{}
-	iter := db.MembershipCollection.Where("Profile.Email", "==" , email).Documents(context.Background())
+	iter := db.MembershipCollection.Where("profile.email", "==" , email).Documents(context.Background())
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
@@ -103,7 +98,7 @@ func (mr *membershipRepository) DeleteMembership(id string) error {
 func (mr *membershipRepository) GetClubMembers(clubId string) ([]*domain.Profile, error) {
 
 	result := []*domain.Profile{}
-	docSnapArr, err := db.MembershipCollection.Where("Club.ClubId", "==" , clubId).Documents(context.Background()).GetAll()
+	docSnapArr, err := db.MembershipCollection.Where("club.id", "==" , clubId).Documents(context.Background()).GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -117,15 +112,5 @@ func (mr *membershipRepository) GetClubMembers(clubId string) ([]*domain.Profile
 		fmt.Println( docSnapArr[i].Data() )
 	}
 
-	return result, nil
-	//var queryResult []*domain.Membership
-	//err := db.MembershipCollection.Find(bson.M{"club._id": clubId}).All(&queryResult)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//var result []*domain.Profile
-	//for _, v := range queryResult {
-	//	result = append(result, v.Profile)
-	//}
 	return result, nil
 }

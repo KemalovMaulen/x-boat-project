@@ -7,6 +7,7 @@ import (
 	"github.com/salambayev/x-boat-project/db"
 	"google.golang.org/api/iterator"
 	"fmt"
+	"github.com/salambayev/x-boat-project/utils"
 )
 
 type ClubRepository interface {
@@ -36,27 +37,18 @@ func (cr *clubRepository) CreateClub(club *domain.Club) error {
 }
 
 func (cr *clubRepository) UpdateClub(clubCode string, club *domain.Club) error {
-	cl := make(map[string]interface{})
 	fmt.Printf("club %+v", club)
-	if club.ClubId != "" {
-		cl["ClubId"] = club.ClubId
+	fireMap, err := utils.GetMap(club)
+	if err != nil {
+		return err
 	}
-	if club.Name != "" {
-		cl["Name"] = club.Name
-	}
-	if club.Owner != "" {
-		cl["Owner"] = club.Owner
-	}
-	if club.IsActive != nil {
-		cl["IsActive"] = club.IsActive
-	}
-	_, err := db.ClubCollection.Doc(clubCode).Set(context.Background(), cl, firestore.MergeAll)
+	_, err = db.MembershipCollection.Doc(clubCode).Set(context.Background(), fireMap, firestore.MergeAll)
 	return err
 }
 
 func (cr *clubRepository) DeleteClub(code string) error {
 	isActive := false
-	_, err := db.ClubCollection.Doc(code).Set(context.Background(), &domain.Club{IsActive: &isActive}, firestore.Merge([]string{"IsActive"}))
+	_, err := db.ClubCollection.Doc(code).Set(context.Background(), &domain.Club{IsActive: &isActive}, firestore.Merge([]string{"is_active"}))
 	return err
 }
 

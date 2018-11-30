@@ -16,16 +16,13 @@ func NewClubsEndpointFactory() *ClubsEndpointFactory {
 	return &ClubsEndpointFactory{}
 }
 
+var errClSys = &server.ErrorSystem{"x-boat-club"}
+
 func (fac *ClubsEndpointFactory) NotFoundEndpoint() server.HttpEndpoint {
 	return func (w http.ResponseWriter, r *http.Request) server.HttpResponse {
-		return &server.Response{Status: http.StatusNotFound,
-		Data:       server.Error{404, "1", "Whoops! Requested url not found", ""},
-		HeaderData: make(map[string]string) }
+		return errClSys.NotFound(1, "Whoops! Requested url not found")
 	}
 }
-
-//var errSys = &server.ErrorSystem{"x-boat", 10}
-
 
 func (fac *ClubsEndpointFactory) MakeCreateClubEndpoint(services *server.Services) server.HttpEndpoint {
 
@@ -33,17 +30,14 @@ func (fac *ClubsEndpointFactory) MakeCreateClubEndpoint(services *server.Service
 		club := &domain.Club{}
 		err := utils.ParseJSON(r, club)
 		if err != nil {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(110, err.Error())
+			return errClSys.BadRequest(2, "No Id")
+		}
+		if club.ClubId == "" {
+			club.ClubId = utils.GenerateId()
 		}
 		err = services.Clubs.CreateClub(club)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Club already exists",  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(3, "Club already exists",  err.Error())
 		}
 		return server.Created(club)
 	}
@@ -54,26 +48,17 @@ func (fac * ClubsEndpointFactory) MakeUpdateClubEndpoint(id string, services *se
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errClSys.BadRequest(4,"No Id")
 		}
 		club := &domain.Club{}
 		err := utils.ParseJSON(r, club)
 		if err != nil {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Club", err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(110, err.Error())
+			return errClSys.BadRequest(5, "No Club", err.Error())
 		}
 		club.ClubId = id
 		err = services.Clubs.UpdateClub(id, club)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found club with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(6, "Could Not found club with id = " + id,  err.Error())
 		}
 		return server.OK(club)
 	}
@@ -84,17 +69,11 @@ func (fac *ClubsEndpointFactory) MakeGetClubByIdEndpoint(id string, services *se
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data:       server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.BadRequest(123," ")
+			return errClSys.BadRequest(7, "No id = " + id)
 		}
 		d, err := services.Clubs.GetClub(id)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found club with id = " + id,  ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(8,"Could Not found club with id = " + id, err.Error())
 		}
 		return server.OK(d)
 	}
@@ -105,25 +84,16 @@ func (fac *ClubsEndpointFactory) MakeDeleteClubEndpoint(id string, services *ser
 		vars := mux.Vars(r)
 		id, ok := vars[id]
 		if !ok {
-			return &server.Response{Status: http.StatusBadRequest,
-				Data: server.Error{400, "2", "No Id", ""},
-				HeaderData: make(map[string]string)}
-			//return errSys.BadRequest(123," ")
+			return errClSys.BadRequest(9,"No id")
 		}
 		_, err := services.Clubs.GetClub(id)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found club with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(10, "Could Not found club with id = " + id,  err.Error())
 		}
 
 		err = services.Clubs.DeleteClub(id)
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found club with id = " + id,  err.Error()},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(11, "Could Not found club with id = " + id,  err.Error())
 		}
 		return server.OK("ok")
 	}
@@ -131,13 +101,9 @@ func (fac *ClubsEndpointFactory) MakeDeleteClubEndpoint(id string, services *ser
 
 func (fac *ClubsEndpointFactory) MakeGetAllClubsEndpoint(services *server.Services) server.HttpEndpoint {
 	return func(w http.ResponseWriter, r *http.Request) server.HttpResponse {
-
 		d, err := services.Clubs.GetAllClubs()
 		if err != nil {
-			return &server.Response{Status: http.StatusInternalServerError,
-				Data:       server.Error{500, "3", "Could Not found club with id = " ,  ""},
-				HeaderData: make(map[string]string) }
-			//return errSys.InternalServerError(119, err.Error())
+			return errClSys.InternalServerError(12, "Could Not found any club" , err.Error())
 		}
 		return server.OK(d)
 	}

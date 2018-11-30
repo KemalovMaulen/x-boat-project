@@ -1,42 +1,55 @@
 package repositories
-//
-//import (
-//	"github.com/salambayev/x-boat-project/domain"
-//	"github.com/salambayev/x-boat-project/db"
-//	"gopkg.in/mgo.v2/bson"
-//)
-//
-//type ProfilesRepository interface {
-//	CreateProfile(profile *domain.Profile) error
-//
-//	UpdateProfile(profile *domain.Profile) error
-//
-//	DeleteProfile(email string) error
-//
-//	GetProfile(email string) (*domain.Profile, error)
-//}
-//
-//type profileRepository struct {
-//}
-//
-//func NewProfileRepository() ProfilesRepository {
-//	return &profileRepository{}
-//}
-//
-//func (pr *profileRepository) CreateProfile(profile *domain.Profile) error {
-//	return db.ProfilesCollection.Insert(&profile)
-//}
-//
-//func (pr *profileRepository) UpdateProfile(profile *domain.Profile) error {
-//	return db.ProfilesCollection.Update(bson.M{"email": profile.Email}, &profile)
-//}
-//
-//func (pr *profileRepository) DeleteProfile(email string) error {
-//	return db.ProfilesCollection.Remove(bson.M{"email": email})
-//}
-//
-//func (pr *profileRepository) GetProfile(email string) (*domain.Profile, error) {
-//	result := domain.Profile{}
-//	err := db.ProfilesCollection.Find(bson.M{"email": email}).One(&result)
-//	return &result, err
-//}
+
+import (
+	"github.com/salambayev/x-boat-project/domain"
+	"github.com/salambayev/x-boat-project/db"
+	"context"
+	"github.com/salambayev/x-boat-project/utils"
+	"cloud.google.com/go/firestore"
+)
+
+type ProfilesRepository interface {
+	CreateProfile(profile *domain.Profile) error
+
+	UpdateProfile(profile *domain.Profile) error
+
+	DeleteProfile(email string) error
+
+	GetProfile(email string) (*domain.Profile, error)
+}
+
+type profileRepository struct {
+}
+
+func NewProfileRepository() ProfilesRepository {
+	return &profileRepository{}
+}
+
+func (pr *profileRepository) CreateProfile(profile *domain.Profile) error {
+	_, err := db.ProfilesCollection.Doc(profile.Email).Create(context.Background(), profile)
+	return err
+}
+
+func (pr *profileRepository) UpdateProfile(profile *domain.Profile) error {
+	fireMap, err := utils.GetMap(profile)
+	if err != nil {
+		return err
+	}
+	_, err = db.ProfilesCollection.Doc(profile.Email).Set(context.Background(), fireMap, firestore.MergeAll)
+	return err
+}
+
+func (pr *profileRepository) DeleteProfile(email string) error {
+	_, err := db.ProfilesCollection.Doc(email).Delete(context.Background())
+	return err
+}
+
+func (pr *profileRepository) GetProfile(email string) (*domain.Profile, error) {
+	dsnap, err := db.ProfilesCollection.Doc(email).Get(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	result := &domain.Profile{}
+	err = dsnap.DataTo(result)
+	return result, err
+}
