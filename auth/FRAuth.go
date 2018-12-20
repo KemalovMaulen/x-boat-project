@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+    "github.com/SermoDigital/jose"
 )
 
 type FRAuth struct {
@@ -48,3 +49,19 @@ func (frAuth *FRAuth) SignUp(w http.ResponseWriter, r *http.Request) (*auth.User
 	log.Printf("Successfully created user: %v/n", newUser)
 	return newUser, nil
 }
+
+func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	profile := &domain.Profile{}
+	err := utils.ParseJSON(r, profile)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := db.FRAuthClient.CustomToken(context.Background(), utils.GenerateId())
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
