@@ -227,9 +227,6 @@ func run(c *cli.Context) error {
 	//subscriptionFac := endpoints.NewSubscriptionEndpointFactory()
 
 
-
-
-
 	// Timerecord Endpoints
 	//timerecordFac := endpoints.NewTimerecordsEndpointFactory()
 
