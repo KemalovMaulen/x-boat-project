@@ -18,7 +18,7 @@ type FRAuth struct {
 
 func (frAuth *FRAuth) ValidateToken(w http.ResponseWriter, r *http.Request) (*auth.Token, error) {
 	token := r.Header.Get("Authorization")
-	splitedToken := strings.Split(token, "Bearer")
+	splitedToken := strings.Split(token, " ")
 	trueToken := splitedToken[1]
 
 	validatedToken, err := db.FRAuthClient.VerifyIDToken(context.Background(), trueToken)
@@ -63,5 +63,14 @@ func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, 
 	}
 
 	return token, nil
+}
+
+func (frAuth *FRAuth) RefreshToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	token := r.Header.Get("Authorization")
+	splitedToken := strings.Split(token, " ")
+	trueToken := splitedToken[1]
+
+	//db.FRAuthClient.
+	// TODO: Something should be here to solve this problem, we need refresh token, but how? 
 }
 
