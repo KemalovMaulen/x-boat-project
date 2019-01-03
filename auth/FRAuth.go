@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-    "github.com/SermoDigital/jose"
 )
 
 type FRAuth struct {
@@ -65,12 +64,12 @@ func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, 
 	return token, nil
 }
 
-func (frAuth *FRAuth) RefreshToken(w http.ResponseWriter, r *http.Request) (string, error) {
-	token := r.Header.Get("Authorization")
-	splitedToken := strings.Split(token, " ")
-	trueToken := splitedToken[1]
-
-	//db.FRAuthClient.
-	// TODO: Something should be here to solve this problem, we need refresh token, but how? 
-}
+//func (frAuth *FRAuth) RefreshToken(w http.ResponseWriter, r *http.Request) (string, error) {
+//	token := r.Header.Get("Authorization")
+//	splitedToken := strings.Split(token, " ")
+//	trueToken := splitedToken[1]
+//
+//	//db.FRAuthClient.
+//	// TODO: Something should be here to solve this problem, we need refresh token, but how?
+//}
 
