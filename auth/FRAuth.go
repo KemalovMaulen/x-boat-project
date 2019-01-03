@@ -57,7 +57,7 @@ func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, 
 		return "", err
 	}
 
-	token, err := db.FRAuthClient.CustomToken(context.Background(), utils.GenerateId())
+	token, err := db.FRAuthClient.CustomToken(context.Background(), profile.Email)
 	if err != nil {
 		return "", err
 	}
