@@ -19,10 +19,6 @@ import (
 )
 
 var (
-	mongoDbUrl string
-	mongoDbHost string
-	mongoDbPort string
-	mongoDbName string
 	configPath  = ".env"
 	port string
 	version = "0.0.1"
@@ -37,30 +33,6 @@ var flags = []cli.Flag{
 		Usage:       "path to .env config file",
 		Destination: &configPath,
 	},
-	cli.StringFlag{
-		Name: "mongo_url, mgu",
-		Value: "",
-		Usage: "Mongo DB Url",
-		Destination: &mongoDbUrl,
-	},
-	cli.StringFlag{
-		Name: "mongo_name, mgn",
-		Value: "",
-		Usage: "Mongo DB Name",
-		Destination: &mongoDbName,
-	},
-	cli.StringFlag{
-		Name: "mongo_host, mgh",
-		Value: "",
-		Usage: "Mongo DB Host",
-		Destination: &mongoDbHost,
-	},
-	cli.StringFlag{
-		Name: "mongo_port, mgp",
-		Value: "",
-		Usage: "Mongo DB Port",
-		Destination: &mongoDbPort,
-	},
 }
 
 
@@ -73,10 +45,6 @@ func parseEnvFile() error {
 
 	port = os.Getenv("PORT")
 	log_level, _ = strconv.Atoi(os.Getenv("LOG_LEVEL"))
-	mongoDbUrl = os.Getenv("MONGODB_URL")
-	mongoDbName = os.Getenv("MONGODB_NAME")
-	mongoDbHost = os.Getenv("MONGODB_HOST")
-	mongoDbPort = os.Getenv("MONGODB_PORT")
 	version = os.Getenv("VERSION")
 
 	return nil
@@ -95,10 +63,6 @@ func main() {
 }
 
 func printConfig() {
-	fmt.Println("MONGODB_URL="+mongoDbUrl)
-	fmt.Println("MONGODB_NAME="+mongoDbName)
-	fmt.Println("MONGODB_HOST="+mongoDbHost)
-	fmt.Println("MONGODB_PORT="+mongoDbPort)
 	fmt.Println("PORT="+port)
 	fmt.Println("LOG_LEVEL="+strconv.Itoa(log_level))
 	fmt.Println("VERSION="+version)
@@ -118,7 +82,7 @@ func run(c *cli.Context) error {
 	clubsFac := endpoints.NewClubsEndpointFactory()
 	r := mux.NewRouter()
 
-	services := initializeServices()
+	repoServices := initializeServices()
 
 
 	//Here should be the handlers -->
@@ -126,31 +90,31 @@ func run(c *cli.Context) error {
 	r.HandleFunc("/clubs",
 		server.Json(
 			server.Logging(log,
-				clubsFac.MakeCreateClubEndpoint( services))),
+				clubsFac.MakeCreateClubEndpoint(repoServices))),
 	).Methods("POST")
 
 	r.HandleFunc("/clubs/{id}",
 		server.Json(
 			server.Logging(log,
-				clubsFac.MakeUpdateClubEndpoint("id", services))),
+				clubsFac.MakeUpdateClubEndpoint("id", repoServices))),
 	).Methods("PUT")
 
 	r.HandleFunc("/clubs/{id}",
 		server.Json(
 			server.Logging(log,
-				clubsFac.MakeGetClubByIdEndpoint("id", services))),
+				clubsFac.MakeGetClubByIdEndpoint("id", repoServices))),
 	).Methods("GET")
 
 	r.HandleFunc("/clubs/{id}",
 		server.Json(
 			server.Logging(log,
-				clubsFac.MakeDeleteClubEndpoint("id", services))),
+				clubsFac.MakeDeleteClubEndpoint("id", repoServices))),
 	).Methods("DELETE")
 
 	r.HandleFunc("/all/clubs",
 		server.Json(
 			server.Logging(log,
-				clubsFac.MakeGetAllClubsEndpoint(services))),
+				clubsFac.MakeGetAllClubsEndpoint(repoServices))),
 	).Methods("GET")
 
 
@@ -161,38 +125,38 @@ func run(c *cli.Context) error {
 	r.HandleFunc("/membership",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeCreateMembershipEndpoint( services))),
+				membershipFac.MakeCreateMembershipEndpoint(repoServices))),
 	).Methods("POST")
 
 	r.HandleFunc("/membership/{id}",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeUpdateMembershipEndpoint("id", services))),
+				membershipFac.MakeUpdateMembershipEndpoint("id", repoServices))),
 	).Methods("PUT")
 
 	r.HandleFunc("/membership/{id}",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeGetMembershipByIdEndpoint("id", services))),
+				membershipFac.MakeGetMembershipByIdEndpoint("id", repoServices))),
 	).Methods("GET")
 
 
 	r.HandleFunc("/memberships/byemail/{email}",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeGetUserMembershipsEndpoint("email", services))),
+				membershipFac.MakeGetUserMembershipsEndpoint("email", repoServices))),
 	).Methods("GET")
 
 	r.HandleFunc("/memberships/byclub/{id}",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeGetClubMembersEndpoint("id", services))),
+				membershipFac.MakeGetClubMembersEndpoint("id", repoServices))),
 	).Methods("GET")
 
 	r.HandleFunc("/memberships/{id}",
 		server.Json(
 			server.Logging(log,
-				membershipFac.MakeDeleteMembershipEndpoint("id", services))),
+				membershipFac.MakeDeleteMembershipEndpoint("id", repoServices))),
 	).Methods("DELETE")
 
 	// Profile Endpoints
@@ -201,25 +165,25 @@ func run(c *cli.Context) error {
 	r.HandleFunc("/profile",
 		server.Json(
 			server.Logging(log,
-				profileFac.MakeCreateProfileEndpoint( services))),
+				profileFac.MakeCreateProfileEndpoint(repoServices))),
 	).Methods("POST")
 
 	r.HandleFunc("/profile",
 		server.Json(
 			server.Logging(log,
-				profileFac.MakeUpdateProfileEndpoint( services))),
+				profileFac.MakeUpdateProfileEndpoint(repoServices))),
 	).Methods("PUT")
 
 	r.HandleFunc("/profile",
 		server.Json(
 			server.Logging(log,
-				profileFac.MakeGetProfileEndpoint  ("email", services))),
+				profileFac.MakeGetProfileEndpoint  ("email", repoServices))),
 	).Methods("GET")
 
 	r.HandleFunc("/profile",
 		server.Json(
 			server.Logging(log,
-				profileFac.MakeDeleteProfileEndpoint("email", services))),
+				profileFac.MakeDeleteProfileEndpoint("email", repoServices))),
 	).Methods("DELETE")
 
 
