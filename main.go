@@ -84,8 +84,6 @@ func run(c *cli.Context) error {
 
 	repoServices := initializeServices()
 
-
-	//Here should be the handlers -->
 	// Club Endpoints
 	r.HandleFunc("/clubs",
 		server.Json(
@@ -188,11 +186,70 @@ func run(c *cli.Context) error {
 
 
 	// Subscription Endpoints
-	//subscriptionFac := endpoints.NewSubscriptionEndpointFactory()
+	subscriptionFac := endpoints.NewSubscriptionEndpointFactory()
+	r.HandleFunc("/subscription",
+		server.Json(
+			server.Logging(log,
+				subscriptionFac.MakeCreateSubscriptionEndpoint(repoServices))),
+				).Methods("POST")
+
+	r.HandleFunc("/subscription/activate",
+		server.Json(
+			server.Logging(log,
+				subscriptionFac.MakeActivateSubscriptionEndpoint(repoServices))),
+				).Methods("PUT")
+
+	r.HandleFunc("/subscription/type",
+		server.Json(
+			server.Logging(log,
+				subscriptionFac.MakeChangeSubscriptionTypeEndpoint(repoServices))),
+				).Methods("PUT")
+
+	r.HandleFunc("/subscription/deactivate",
+		server.Json(
+			server.Logging(log,
+				subscriptionFac.MakeDeactivateSubscriptionEndpoint(repoServices))),
+				).Methods("PUT")
+
+	r.HandleFunc("/subscription",
+		server.Json(
+			server.Logging(log,
+				subscriptionFac.MakeGetSubscriptionEndpoint("email", repoServices))),
+				).Methods("GET")
 
 
 	// Timerecord Endpoints
-	//timerecordFac := endpoints.NewTimerecordsEndpointFactory()
+	timerecordFac := endpoints.NewTimerecordsEndpointFactory()
+
+	r.HandleFunc("/timerecord",
+		server.Json(
+			server.Logging(log,
+				timerecordFac.MakeCreateTimerecordEndpoint(repoServices))),
+				).Methods("POST")
+
+	r.HandleFunc("/timerecord",
+		server.Json(
+			server.Logging(log,
+				timerecordFac.MakeUpdateTimerecordEndpoint(repoServices))),
+				).Methods("PUT")
+
+	r.HandleFunc("/timerecord",
+		server.Json(
+			server.Logging(log,
+				timerecordFac.MakeDeleteTimerecordEndpoint(repoServices))),
+				).Methods("DELETE")
+
+	r.HandleFunc("/timerecord/all",
+		server.Json(
+			server.Logging(log,
+				timerecordFac.MakeGetAllTimerecordsEndpoint(repoServices))),
+				).Methods("GET")
+
+	r.HandleFunc("/timerecord",
+		server.Json(
+			server.Logging(log,
+				timerecordFac.MakeGetTimerecordEndpoint(repoServices))),
+				).Methods("GET")
 
 
 	r.NotFoundHandler = http.HandlerFunc( server.Json( server.Logging( log, clubsFac.NotFoundEndpoint())))

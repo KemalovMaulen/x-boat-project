@@ -88,7 +88,7 @@ func (fac *SubscriptionEndpointFactory) MakeActivateSubscriptionEndpoint(service
 		if strings.TrimSpace(subscription.Email) == "" {
 			return errSubSys.BadRequest(11, "No email = " )
 		}
-		if subscription.BeginTime == 0 && subscription.BeginTime == 0 { //TODO
+		if subscription.BeginTime == 0 && subscription.EndTime == 0 { //TODO
 
 			return errSubSys.BadRequest(12, "subscription time is 0" )
 		}

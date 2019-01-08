@@ -72,4 +72,3 @@ func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, 
 //	//db.FRAuthClient.
 //	// TODO: Something should be here to solve this problem, we need refresh token, but how?
 //}
-
