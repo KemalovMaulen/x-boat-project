@@ -5,10 +5,10 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/salambayev/x-boat-project/db"
 	"github.com/salambayev/x-boat-project/domain"
-	"github.com/salambayev/x-boat-project/utils"
 	"log"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
 type FRAuth struct {
@@ -19,7 +19,7 @@ func (frAuth *FRAuth) ValidateToken(w http.ResponseWriter, r *http.Request) (*au
 	token := r.Header.Get("Authorization")
 	splitedToken := strings.Split(token, " ")
 	trueToken := splitedToken[1]
-
+	fmt.Println("token: ", trueToken)
 	validatedToken, err := db.FRAuthClient.VerifyIDToken(context.Background(), trueToken)
 	if err != nil {
 		return nil, err
@@ -28,13 +28,9 @@ func (frAuth *FRAuth) ValidateToken(w http.ResponseWriter, r *http.Request) (*au
 	return validatedToken, nil
 }
 
-func (frAuth *FRAuth) SignUp(w http.ResponseWriter, r *http.Request) (*auth.UserRecord, error) {
-	profile := &domain.Profile{}
-	err := utils.ParseJSON(r, profile)
-	if err != nil {
-		return nil, err
-	}
+func (frAuth *FRAuth) SignUp(w http.ResponseWriter, r *http.Request, profile *domain.Profile) (*auth.UserRecord, error) {
 	params := (&auth.UserToCreate{}).
+		UID(profile.Uid).
 		Email(profile.Email).
 		EmailVerified(false).
 		Password(profile.Password).
@@ -49,14 +45,9 @@ func (frAuth *FRAuth) SignUp(w http.ResponseWriter, r *http.Request) (*auth.User
 	return newUser, nil
 }
 
-func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, error) {
-	profile := &domain.Profile{}
-	err := utils.ParseJSON(r, profile)
-	if err != nil {
-		return "", err
-	}
+func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request, profile *domain.Profile) (string, error) {
 
-	token, err := db.FRAuthClient.CustomToken(context.Background(), profile.Email)
+	token, err := db.FRAuthClient.CustomToken(context.Background(), profile.Uid)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +59,8 @@ func (frAuth *FRAuth) GetToken(w http.ResponseWriter, r *http.Request) (string, 
 //	token := r.Header.Get("Authorization")
 //	splitedToken := strings.Split(token, " ")
 //	trueToken := splitedToken[1]
-//
+//	fmt.Println(trueToken)
 //	//db.FRAuthClient.
 //	// TODO: Something should be here to solve this problem, we need refresh token, but how?
+//	return token, nil
 //}

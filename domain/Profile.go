@@ -1,6 +1,7 @@
 package domain
 
 type Profile struct {
+	Uid			  string         `json:"uid,omitempty" bson:"uid,omitempty" firestore:"uid,omitempty"`
 	Email         string         `json:"email,omitempty" bson:"email,omitempty" firestore:"email,omitempty"`
 	Password      string         `json:"password,omitempty" bson:"password,omitempty" firestore:"password,omitempty"`
 	FirstName     string         `json:"first_name,omitempty" bson:"first_name,omitempty" firestore:"first_name,omitempty"`

@@ -28,7 +28,6 @@ func Connect(projectId string, ctx context.Context, pathToAccount string) error 
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	client, err := app.Firestore(ctx)
 	if err != nil {
 		log.Fatalln(err)
@@ -41,6 +40,5 @@ func Connect(projectId string, ctx context.Context, pathToAccount string) error 
 	SubscriptionCollection = client.Collection("subscriptions")
 
 	FRAuthClient = auth
-
 	return nil
 }
