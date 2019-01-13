@@ -21,7 +21,7 @@ import (
 var (
 	configPath  = ".env"
 	port string
-	version = "0.0.1"
+	version = "1.0.0"
 )
 
 var log_level, _ = strconv.Atoi(os.Getenv("LOG_LEVEL"))

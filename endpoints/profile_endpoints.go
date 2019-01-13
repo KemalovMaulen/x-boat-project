@@ -79,7 +79,6 @@ func (fac * ProfileEndpointFactory) MakeUpdateProfileEndpoint(services *server.S
 
 func (fac *ProfileEndpointFactory) MakeGetProfileEndpoint(emailParam string, services *server.Services) server.HttpEndpoint {
 	return func(w http.ResponseWriter, r *http.Request) server.HttpResponse {
-
 		_ , err := (&auth.FRAuth{}).ValidateToken(w, r)
 		if err != nil {
 			return errProSys.BadRequest(12, "Profile ValidateToken ", err.Error())
